@@ -23,7 +23,8 @@ class Controller
 
 
     public function json(){
-
+        $result = $this->db->fetchAll("SELECT * FROM messages LIMIT 10");
+        return json_encode($result);
     }
 
 

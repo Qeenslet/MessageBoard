@@ -118,13 +118,18 @@ class DB
     }
 
     private function makeTable(PDO $db){
-        echo 'Here';
-        $a = $db->exec('CREATE TABLE IF NOT EXISTS `messages` ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                                             `name` VARCHAR(255) NOT NULL,
-                                                             `email` VARCHAR(255) NOT NULL,
-                                                             `user_id` INTEGER NULL,
-                                                             `html` TEXT NOT NULL);');
-        echo $a;
+
+        try{
+            $db->exec('CREATE TABLE IF NOT EXISTS messages ( id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                                                             name VARCHAR(255) NOT NULL,
+                                                             email VARCHAR(255) NOT NULL,
+                                                             user_id INTEGER NULL,
+                                                             html TEXT NOT NULL);');
+        } catch (PDOException $e){
+            echo $e->getMessage();
+        }
+
+
         /*$db->exec('CREATE TABLE IF NOT EXISTS news ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                                                              mark VARCHAR(255) NOT NULL,
                                                              header VARCHAR(255) NOT NULL,
@@ -148,5 +153,14 @@ class DB
                                                              visit INTEGER);');*/
 
 
+    }
+
+
+
+    public function fetchAll($query, $params = []){
+        if (!$params){
+            $st3 = $this->db->query($query, PDO::FETCH_ASSOC);
+            return $st3->fetchAll();
+        }
     }
 }
