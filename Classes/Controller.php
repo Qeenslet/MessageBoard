@@ -5,12 +5,25 @@
  * Date: 22.02.19
  * Time: 14:39
  */
+require_once ('DB.php');
 
 class Controller
 {
+    private $db;
+
+    public function __construct()
+    {
+        $this->db = DB::establishConnction();
+    }
+
     public function index(){
         $html = file_get_contents(__DIR__ . '/../html/index.html');
         return $html ? $html : '<h2>Sorry! Something has been broken!</h2>';
+    }
+
+
+    public function json(){
+
     }
 
 
