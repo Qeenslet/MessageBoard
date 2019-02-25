@@ -70,19 +70,53 @@ class Controller {
 
     }
 
-    static showPagination(){
+    static detectMaxPages(){
         let pages = Math.ceil(TOTAL_ENTRIES / 10);
         if (pages < 1) pages = 1;
+        return pages;
+    }
+
+    static showPagination(){
+        let pages = Controller.detectMaxPages();
+        let current = Controller.detectCurrentPage();
         let pagination = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
-        pagination += '<li class="page-item"><a class="page-link" href="#">Previous</a></li>';
+        pagination += '<li class="page-item"><a class="page-link" onclick="Controller.prevPage()">Previous</a></li>';
+
         let c = 0;
         do {
-            pagination += `<li class="page-item"><a class="page-link" onclick="Controller.shiftPage(${++c})">${c}</a></li>`;
+            ++c;
+            let style = 'page-item';
+            if (c == current) style += ' active';
+            pagination += `<li class="${style}"><a class="page-link" onclick="Controller.shiftPage(${c})">${c}</a></li>`;
         } while(c < pages);
-        pagination += '<li class="page-item"><a class="page-link" href="#">Next</a></li>';
+        pagination += '<li class="page-item"><a class="page-link" onclick="Controller.nextPage()">Next</a></li>';
         pagination += '</ul></nav>';
         $('#nav_top').html(pagination);
         $('#nav_bottom').html(pagination);
+    }
+
+    static detectCurrentPage(){
+        let hash = Controller.getPageHash();
+        let page;
+        if (hash){
+            page = parseInt(hash.substr(2));
+        } else
+            page = 1;
+        return page;
+    }
+
+    static prevPage(){
+        let page = Controller.detectCurrentPage();
+        if (page && page != 1){
+            Controller.shiftPage(page - 1);
+        }
+    }
+    static nextPage(){
+        let page = Controller.detectCurrentPage();
+        let max = Controller.detectMaxPages();
+        if (page && page < max){
+            Controller.shiftPage(page + 1);
+        }
     }
 }
 
