@@ -35,6 +35,10 @@ class Router
     private function formatRoute($route)
     {
         $result = rtrim($route, '/');
+        if (strpos($result, '?')) {
+            $tmpt = explode('/?', $result);
+            $result = $tmpt[0];
+        }
         if ($result === '')
         {
             return '/';

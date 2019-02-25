@@ -16,8 +16,17 @@ class Model
     }
 
 
-    public function getMessages(){
-        return $this->fetchAll("SELECT * FROM messages ORDER BY id ASC LIMIT 10");
+    public function getMessages($page = 1){
+        if ($page == 1)
+            return $this->fetchAll("SELECT * FROM `messages` ORDER BY date_added DESC LIMIT 10");
+        else{
+            $pages = ($page - 1) * 10;
+            return $this->fetchAll("SELECT * FROM `messages` ORDER BY date_added DESC LIMIT 10 OFFSET {$pages}");
+        }
+    }
+
+    public function countMessages(){
+        return $this->db->query('SELECT count(*) from `messages`')->fetchColumn();
     }
 
 

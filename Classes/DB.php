@@ -125,7 +125,8 @@ class DB
                                                              name VARCHAR(255) NOT NULL,
                                                              email VARCHAR(255) NOT NULL,
                                                              user_id INTEGER NULL,
-                                                             html TEXT NOT NULL);');
+                                                             html TEXT NOT NULL,
+                                                             `date_added` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);');
         } catch (PDOException $e){
             echo $e->getMessage();
         }

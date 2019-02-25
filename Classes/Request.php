@@ -29,7 +29,12 @@ class Request implements IRequest
     {
         if($this->requestMethod === "GET")
         {
-            return;
+            $result = array();
+            foreach($_GET as $key => $value)
+            {
+                $result[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+            }
+            return $result;
         }
         if ($this->requestMethod == "POST")
         {

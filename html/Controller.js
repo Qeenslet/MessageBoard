@@ -1,17 +1,20 @@
 class Controller {
-    constructor(hrefPath){
-        this.href = hrefPath;
-    }
+
     start(){
-        console.log('start');
         this.messages = null;
         this.query();
     }
     query(){
-        fetch(this.href + '/json', {cache : "no-store"})
+        let href = APP_PATH + '/json';
+        let hash = Controller.getPageHash();
+        if (hash){
+            href += '/?' + hash;
+        }
+        fetch(href, {cache : "no-store"})
             .then(response => response.json())
             .then(data => {
-                this.messages = data;
+                this.messages = data.messages.reverse();
+                TOTAL_ENTRIES = data.total;
                 this.display();
             })
             .catch(error => {console.log(error.message); alert('Some error has occured'); });
@@ -21,11 +24,28 @@ class Controller {
         const $mBlock = $('#message-block');
         $mBlock.html('');
         this.messages.forEach(message => {
-
             Controller.appendMessage(Controller.renderMessage(message), $mBlock);
-
         });
 
+    }
+
+    static renderPage(){
+        let contr = new Controller();
+        contr.start();
+    }
+
+    static getPageHash(){
+        let hash = location.hash;
+        if (hash){
+            return hash.substr(1);
+        }
+        return false;
+    }
+
+    static shiftPage(page){
+
+        location.hash = 'p=' + page;
+        Controller.renderPage();
     }
 
     static renderMessage (message){
@@ -46,13 +66,30 @@ class Controller {
             $mBlock.children().last().remove();
         }
         $mBlock.prepend(html);
+        Controller.showPagination();
 
+    }
+
+    static showPagination(){
+        let pages = Math.ceil(TOTAL_ENTRIES / 10);
+        if (pages < 1) pages = 1;
+        let pagination = '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
+        pagination += '<li class="page-item"><a class="page-link" href="#">Previous</a></li>';
+        let c = 0;
+        do {
+            pagination += `<li class="page-item"><a class="page-link" onclick="Controller.shiftPage(${++c})">${c}</a></li>`;
+        } while(c < pages);
+        pagination += '<li class="page-item"><a class="page-link" href="#">Next</a></li>';
+        pagination += '</ul></nav>';
+        $('#nav_top').html(pagination);
+        $('#nav_bottom').html(pagination);
     }
 }
 
 $(function () {
-    let contr = new Controller('/medcom');
-    contr.start();
+    TOTAL_ENTRIES = 0;
+    APP_PATH = '/medcom';
+    Controller.renderPage();
 });
 function postMyMessage (){
     $('input').removeClass('is-invalid');
@@ -80,6 +117,7 @@ function postMyMessage (){
             if (data.ok){
                 Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
                 document.getElementById('new_message').reset();
+                TOTAL_ENTRIES++;
             }
         })
         .catch(error => {console.log(error.message); alert('Some error has occured'); });

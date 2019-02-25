@@ -22,14 +22,23 @@ class Controller
     }
 
 
-    public function json(){
-        return json_encode($this->model->getMessages());
+    public function json($request = null){
+        $page = 1;
+        if ($request){
+            $params = $request->getBody();
+            if (!empty($params['p'])){
+                $page = $params['p'];
+            }
+        }
+        $data['messages'] = $this->model->getMessages($page);
+        $data['total'] = $this->model->countMessages();
+        return json_encode($data);
     }
 
 
     public function test($param){
         ob_start();
-        echo '<pre>'; print_r($param); echo '</pre>';
+        echo '<pre>'; print_r($param->getBody()); echo '</pre>';
         return ob_get_clean();
     }
 
