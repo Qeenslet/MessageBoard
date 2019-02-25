@@ -55,6 +55,8 @@ $(function () {
     contr.start();
 });
 function postMyMessage (){
+    $('input').removeClass('is-invalid');
+    $('.invalid-feedback').remove();
     fetch('/medcom/data', {method: 'post',
                            headers: {
                                 "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
@@ -64,6 +66,16 @@ function postMyMessage (){
         .then(response => response.json())
         .then(data => {
             console.log(data);
+            if (data.errors){
+                data.errors.forEach(error => {
+                    $('#new_message').find('input, textarea').each((n, obj) => {
+                        if ($(obj).attr('name') == error.tgt){
+                            $(obj).addClass('is-invalid');
+                            $(`<div class="invalid-feedback">${error.msg}</div>`).insertAfter($(obj));
+                        }
+                    })
+                });
+            }
         })
         .catch(error => {console.log(error.message); alert('Some error has occured'); });
 }

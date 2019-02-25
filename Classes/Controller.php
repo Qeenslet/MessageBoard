@@ -36,8 +36,25 @@ class Controller
     }
 
     public function posted($request){
-        $aaa = $request->getBody();
-        $aaa['control'] = 'controlled';
-        return json_encode($aaa);
+        $posted = $request->getBody();
+        $data = [];
+        if (empty($posted['name'])){
+            $data['errors'][] = ['tgt' => 'name',
+                                   'msg' => 'Your name is required!'];
+        }
+        if (empty($posted['email'])){
+            $data['errors'][] = ['tgt' => 'email',
+                                   'msg' => 'Your email is required!'];
+        }
+        if (empty($posted['html'])){
+            $data['errors'][] = ['tgt' => 'html',
+                                   'msg' => 'Your message is empty!'];
+        }
+        if (!empty($posted['email']) && !filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL)){
+            $data['errors'][] = ['tgt' => 'email',
+                                   'msg' => 'Your email has incorrect format! It should have the pattern name@domain.zone'];
+        }
+
+        return json_encode($data);
     }
 }
