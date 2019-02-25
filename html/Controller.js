@@ -150,6 +150,7 @@ function postMyMessage (){
             }
             if (data.ok){
                 Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
+                Controller.showPagination();
                 document.getElementById('new_message').reset();
                 TOTAL_ENTRIES++;
             }
