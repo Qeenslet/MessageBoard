@@ -23,7 +23,8 @@ class Controller
 
 
     public function json(){
-        $result = $this->db->fetchAll("SELECT * FROM messages LIMIT 10");
+
+        $result = $this->db->fetchAll("SELECT * FROM messages ORDER BY id DESC LIMIT 10");
         return json_encode($result);
     }
 
@@ -32,5 +33,11 @@ class Controller
         ob_start();
         echo '<pre>'; print_r($param); echo '</pre>';
         return ob_get_clean();
+    }
+
+    public function posted($request){
+        $aaa = $request->getBody();
+        $aaa['control'] = 'controlled';
+        return json_encode($aaa);
     }
 }

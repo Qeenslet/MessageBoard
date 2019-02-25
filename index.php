@@ -11,6 +11,4 @@ $baseRoute = "/medcom";
 $router->get($baseRoute, [$controller, 'index']);
 $router->get($baseRoute . '/auth', [$controller, 'test']);
 $router->get($baseRoute . '/json', [$controller, 'json']);
-$router->post($baseRoute . '/data', function($request) {
-    return json_encode($request->getBody());
-});
+$router->post($baseRoute . '/data', [$controller, 'posted']);

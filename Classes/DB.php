@@ -83,7 +83,7 @@ class DB
             $db = $this->getPDObject(); // Создаем таблицы, если не найдены
             if ($this->dbType === 'sqlite')
             {
-                $st = $db->prepare('SELECT name FROM sqlite_master WHERE type = :tablename');
+                $st = $db->prepare('SELECT type FROM sqlite_master WHERE name = :tablename');
                 $st->execute([':tablename' => 'messages']);
             }
             else if ($this->dbType === 'mysql'){
@@ -119,8 +119,9 @@ class DB
 
     private function makeTable(PDO $db){
 
+        $autoIncr = $this->dbType === 'mysql' ? 'AUTO_INCREMENT' : 'AUTOINCREMENT';
         try{
-            $db->exec('CREATE TABLE IF NOT EXISTS messages ( id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+           $db->exec('CREATE TABLE IF NOT EXISTS messages ( id INTEGER NOT NULL PRIMARY KEY ' . $autoIncr . ',
                                                              name VARCHAR(255) NOT NULL,
                                                              email VARCHAR(255) NOT NULL,
                                                              user_id INTEGER NULL,
