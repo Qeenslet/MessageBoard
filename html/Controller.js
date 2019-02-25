@@ -71,7 +71,8 @@ function postMyMessage (){
                     $('#new_message').find('input, textarea').each((n, obj) => {
                         if ($(obj).attr('name') == error.tgt){
                             $(obj).addClass('is-invalid');
-                            $(`<div class="invalid-feedback">${error.msg}</div>`).insertAfter($(obj));
+                            const $parent = $(obj).parent();
+                            $parent.append(`<div class="invalid-feedback">${error.msg}</div>`);
                         }
                     })
                 });
