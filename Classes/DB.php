@@ -120,13 +120,16 @@ class DB
     private function makeTable(PDO $db){
 
         $autoIncr = $this->dbType === 'mysql' ? 'AUTO_INCREMENT' : 'AUTOINCREMENT';
+        $timestamp =  $this->dbType === 'mysql' ?
+            "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" :
+            "DATETIME DEFAULT CURRENT_TIMESTAMP";
         try{
            $db->exec('CREATE TABLE IF NOT EXISTS messages ( id INTEGER NOT NULL PRIMARY KEY ' . $autoIncr . ',
                                                              name VARCHAR(255) NOT NULL,
                                                              email VARCHAR(255) NOT NULL,
                                                              user_id INTEGER NULL,
                                                              html TEXT NOT NULL,
-                                                             `date_added` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);');
+                                                             `date_added` ' . $timestamp . ');');
         } catch (PDOException $e){
             echo $e->getMessage();
         }
