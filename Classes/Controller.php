@@ -5,15 +5,15 @@
  * Date: 22.02.19
  * Time: 14:39
  */
-require_once ('DB.php');
+require_once ('Model.php');
 
 class Controller
 {
-    private $db;
+    private $model;
 
     public function __construct()
     {
-        $this->db = DB::establishConnction();
+        $this->model = new Model();
     }
 
     public function index(){
@@ -23,9 +23,7 @@ class Controller
 
 
     public function json(){
-
-        $result = $this->db->fetchAll("SELECT * FROM messages ORDER BY id DESC LIMIT 10");
-        return json_encode($result);
+        return json_encode($this->model->getMessages());
     }
 
 
@@ -54,6 +52,15 @@ class Controller
             $data['errors'][] = ['tgt' => 'email',
                                    'msg' => 'Your email has incorrect format! It should have the pattern name@domain.zone'];
         }
+        if (empty($data['errors'])){
+            try{
+                $this->model->insertData($posted, 'messages');
+                $data['ok'] = $posted;
+            } catch (Exception $e){
+
+            }
+        }
+
 
         return json_encode($data);
     }

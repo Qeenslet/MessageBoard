@@ -77,6 +77,10 @@ function postMyMessage (){
                     })
                 });
             }
+            if (data.ok){
+                Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
+                document.getElementById('new_message').reset();
+            }
         })
         .catch(error => {console.log(error.message); alert('Some error has occured'); });
 }
