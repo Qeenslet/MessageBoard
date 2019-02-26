@@ -9,7 +9,7 @@ session_start();
 $router = new Router(new Request);
 $controller = new Controller();
 $baseRoute = $controller->getAppFolder();
-$router->get($baseRoute, [$controller, 'index']);
+$router->get('/', [$controller, 'index']);
 $router->post($baseRoute . '/auth', [$controller, 'newUser']);
 $router->post($baseRoute . '/login', [$controller, 'checkUser']);
 $router->get($baseRoute . '/json', [$controller, 'json']);
