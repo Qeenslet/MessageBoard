@@ -67,7 +67,7 @@ class Router
         if(is_null($method))
         {
             $this->defaultRequestHandler();
-            echo '404 Not found!';
+            echo '<pre>'; print_r($methodDictionary); echo '</pre>';
             return;
         }
         echo call_user_func_array($method, array($this->request));
