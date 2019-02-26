@@ -178,7 +178,8 @@ class Controller
             $_SESSION['_uname'] = $user['u_name'];
             $_SESSION['_uid'] = $user['id'];
             $_SESSION['_umail'] = $user['u_mail'];
-            header('location: ' . $this->getAppFolder());
+            $way = $this->getAppFolder();
+            header('location: ' . !empty($way) ? $way : '/');
 
         } else {
             $data['errors'][] = ['tgt' => 'u_name', 'msg' => 'Unknown user'];
@@ -236,7 +237,8 @@ class Controller
      */
     public function logout(){
         $_SESSION['_smart_control'] = false;
-        header('location: ' . $this->getAppFolder());
+        $way = $this->getAppFolder();
+        header('location: ' . !empty($way) ? $way : '/');
     }
 
 

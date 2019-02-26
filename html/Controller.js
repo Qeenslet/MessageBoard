@@ -249,7 +249,9 @@ class Controller {
     }
 
     static homePage(){
-        window.location = APP_PATH;
+        if (APP_PATH !== '')
+            window.location = APP_PATH;
+        else window.location = '/';
     }
 
 
