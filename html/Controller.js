@@ -118,25 +118,23 @@ class Controller {
             Controller.shiftPage(page + 1);
         }
     }
+
+    static homePage(){
+        window.location = APP_PATH;
+    }
 }
 
-$(function () {
-    TOTAL_ENTRIES = 0;
-    APP_PATH = '/medcom';
-    Controller.renderPage();
-});
 function postMyMessage (){
     $('input').removeClass('is-invalid');
     $('.invalid-feedback').remove();
-    fetch('/medcom/data', {method: 'post',
-                           headers: {
+    fetch(APP_PATH + '/data', {method: 'post',
+                               headers: {
                                 "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
-                           },
-                           credentials: 'include',
-                           body: $('#new_message').serialize()})
+                               },
+                               credentials: 'include',
+                               body: $('#new_message').serialize()})
         .then(response => response.json())
         .then(data => {
-            console.log(data);
             if (data.errors){
                 data.errors.forEach(error => {
                     $('#new_message').find('input, textarea').each((n, obj) => {
@@ -150,10 +148,15 @@ function postMyMessage (){
             }
             if (data.ok){
                 Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
-                Controller.showPagination();
                 document.getElementById('new_message').reset();
-                TOTAL_ENTRIES++;
+                if (data.total) TOTAL_ENTRIES = data.total;
+                else TOTAL_ENTRIES++;
+
+                Controller.showPagination();
+            } else if (data.fail){
+                alert(data.fail);
             }
+
         })
         .catch(error => {console.log(error.message); alert('Some error has occured'); });
 }

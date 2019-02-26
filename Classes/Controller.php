@@ -10,14 +10,24 @@ require_once ('Model.php');
 class Controller
 {
     private $model;
+    private $sets;
 
     public function __construct()
     {
         $this->model = new Model();
+        $this->sets = parse_ini_file('conf.ini', true, INI_SCANNER_TYPED);
     }
 
     public function index(){
         $html = file_get_contents(__DIR__ . '/../html/index.html');
+        if ($html){
+            $path = '/';
+            if (!empty($this->sets['subfolder']['sitefolder'])){
+                $path .= $this->sets['subfolder']['sitefolder'];
+            }
+            $html .= '<script>$(function () {TOTAL_ENTRIES = 0; APP_PATH = \'' . $path . '\'; Controller.renderPage();});</script>';
+
+        }
         return $html ? $html : '<h2>Sorry! Something has been broken!</h2>';
     }
 
@@ -45,6 +55,10 @@ class Controller
     public function posted($request){
         $posted = $request->getBody();
         $data = [];
+
+        foreach ($posted as $k => $value){
+            $posted[$k] = trim($value);
+        }
         if (empty($posted['name'])){
             $data['errors'][] = ['tgt' => 'name',
                                    'msg' => 'Your name is required!'];
@@ -66,10 +80,10 @@ class Controller
                 $this->model->insertData($posted, 'messages');
                 $data['ok'] = $posted;
             } catch (Exception $e){
-
+                $data['fail'] = $e->getMessage();
             }
         }
-
+        $data['total'] = $this->model->countMessages();
 
         return json_encode($data);
     }
