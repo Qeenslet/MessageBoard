@@ -11,6 +11,69 @@
     <title>Message Board</title>
 </head>
 <body>
+<!-- Modal login -->
+<div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loginModalLabel">Sign in</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="inputUname">User name</label>
+                        <input type="email" class="form-control" id="inputUname" placeholder="Enter user name" name="u_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPassword">Password</label>
+                        <input type="password" class="form-control" id="inputPassword" placeholder="Password" name="u_pass">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <input type="button" class="btn btn-primary" onclick="Controller.loginAttempt()" value="Login">
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal new user -->
+<div class="modal fade" id="newuserModal" tabindex="-1" role="dialog" aria-labelledby="newuserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newuserModalLabel">New user</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newuserForm">
+                    <div class="form-group">
+                        <label for="firstUname">User name</label>
+                        <input type="email" class="form-control" id="firstUname" placeholder="Enter user name" name="u_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="firstEmail">Email address</label>
+                        <input type="email" class="form-control" id="firstEmail" aria-describedby="emailHelp" placeholder="Enter email" name="u_mail">
+                    </div>
+                    <div class="form-group">
+                        <label for="firstPassword">Password</label>
+                        <input type="password" class="form-control" id="firstPassword" placeholder="Password" name="u_pass">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <input type="button" class="btn btn-primary" onclick="Controller.addUser()" value="Create">
+            </div>
+        </div>
+    </div>
+</div>
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" style="cursor: pointer" onclick="Controller.homePage()">MessageBoard :)</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,13 +87,11 @@
             </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Dropdown
+                    Do we know you?
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="#">Action</a>
-                    <a class="dropdown-item" href="#">Another action</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">Something else here</a>
+                <div class="dropdown-menu loginNav" aria-labelledby="navbarDropdown" id="loginOptions">
+                    <a class="dropdown-item" style="cursor: pointer" data-toggle="modal" data-target="#loginModal">Sign in</a>
+                    <a class="dropdown-item" style="cursor: pointer" data-toggle="modal" data-target="#newuserModal">New user</a>
                 </div>
             </li>
         </ul>
@@ -58,7 +119,7 @@
                         </div>
                         <div class="input-group">
                             <textarea class="form-control" aria-label="With textarea" name="html"></textarea>
-                            <input type="button" class="btn btn-success" value="Post me!" onclick="postMyMessage()">
+                            <input type="button" class="btn btn-success" value="Post me!" onclick="Controller.postMyMessage()">
                         </div>
                     </form>
                 </div>

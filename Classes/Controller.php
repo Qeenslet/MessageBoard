@@ -6,7 +6,7 @@
  * Time: 14:39
  */
 require_once ('Model.php');
-
+require_once ('Sypher.php');
 class Controller
 {
     private $model;
@@ -18,21 +18,43 @@ class Controller
         $this->sets = parse_ini_file('conf.ini', true, INI_SCANNER_TYPED);
     }
 
+    public function getAppFolder()
+    {
+        $path = '/';
+        if (!empty($this->sets['subfolder']['sitefolder'])){
+            $path .= $this->sets['subfolder']['sitefolder'];
+        }
+        return $path;
+    }
+
+    /**
+     * Main page
+     * @return bool|string
+     */
     public function index(){
         $html = file_get_contents(__DIR__ . '/../html/index.html');
         if ($html){
-            $path = '/';
-            if (!empty($this->sets['subfolder']['sitefolder'])){
-                $path .= $this->sets['subfolder']['sitefolder'];
+            $path = $this->getAppFolder();
+            $globalUser = 'THE_USER = null;';
+            if ($this->checkSession()){
+                $user = $this->getLoginedUser();
+                if ($user){
+                    $globalUser = "THE_USER = " . json_encode($user) . ";";
+                }
             }
-            $html .= '<script>$(function () {TOTAL_ENTRIES = 0; APP_PATH = \'' . $path . '\'; Controller.renderPage();});</script>';
+            $html .= '<script>$(function () {' . $globalUser . 'TOTAL_ENTRIES = 0; APP_PATH = \'' . $path . '\'; Controller.renderPage();});</script>';
 
         }
         return $html ? $html : '<h2>Sorry! Something has been broken!</h2>';
     }
 
 
-    public function json($request = null){
+    /**
+     * List of messages split by 10
+     * @param Request|null $request
+     * @return string
+     */
+    public function json(Request $request = null){
         $page = 1;
         if ($request){
             $params = $request->getBody();
@@ -46,13 +68,12 @@ class Controller
     }
 
 
-    public function test($param){
-        ob_start();
-        echo '<pre>'; print_r($param->getBody()); echo '</pre>';
-        return ob_get_clean();
-    }
-
-    public function posted($request){
+    /**
+     * Adding message to board
+     * @param Request $request
+     * @return string
+     */
+    public function posted(Request $request){
         $posted = $request->getBody();
         $data = [];
 
@@ -87,4 +108,113 @@ class Controller
 
         return json_encode($data);
     }
+
+
+    /**
+     * @param Request $param
+     * @return string
+     */
+    public function newUser(Request $param){
+        $userData = $param->getBody();
+        foreach ($userData as $k => $value){
+            $userData[$k] = trim($value);
+        }
+        if (empty($userData['u_name'])){
+            $data['errors'][] = ['tgt' => 'u_name',
+                'msg' => 'Your name is required!'];
+        }
+        if (empty($userData['u_mail'])){
+            $data['errors'][] = ['tgt' => 'u_mail',
+                'msg' => 'Your email is required!'];
+        }
+        if (empty($userData['u_pass'])){
+            $data['errors'][] = ['tgt' => 'u_pass',
+                'msg' => 'Your password is required!'];
+        }
+        if (!empty($userData['u_mail']) && !filter_input(INPUT_POST, 'u_mail', FILTER_VALIDATE_EMAIL)){
+            $data['errors'][] = ['tgt' => 'u_mail',
+                'msg' => 'Your email has incorrect format! It should have the pattern name@domain.zone'];
+        }
+        if (empty($data['errors'])){
+            try{
+                $userData['u_pass'] = Sypher::encode($userData['u_pass']);
+                $this->model->insertData($userData, 'users');
+                $data['ok'] = true;
+            } catch (Exception $e){
+                $data['fail'] = $e->getMessage();
+            }
+        }
+        return json_encode($data);
+    }
+
+    /**
+     * @param Request $param
+     * @return string
+     */
+    public function checkUser(Request $param){
+        $userData = $param->getBody();
+        $data = [];
+        if ($this->checkCredencials($userData)) {
+            $_SESSION['_smart_control'] = true;
+            $user = $this->model->getUserByName($userData['u_name']);
+            unset($user['u_pass']);
+            $_SESSION['_uname'] = $user['u_name'];
+            $_SESSION['_uid'] = $user['id'];
+            $_SESSION['_umail'] = $user['u_mail'];
+            header('location: ' . $this->getAppFolder());
+
+        } else {
+            $data['errors'][] = ['tgt' => 'u_name', 'msg' => 'Unknown user'];
+            $data['errors'][] = ['tgt' => 'u_pass', 'msg' => 'Or incorrect password'];
+
+        }
+        return json_encode($data);
+    }
+
+
+    /**
+     * @param $post
+     * @return bool
+     */
+    private function checkCredencials($post){
+        if (!empty($post['u_name'])) {
+            $data = $this->model->getUserByName($post['u_name']);
+            if (empty($data)) return false;
+
+            return Sypher::verify($data['u_pass'], $post['u_pass']);
+        }
+        return false;
+    }
+
+
+    /**
+     * @return bool
+     */
+    private function checkSession(){
+        if (!empty($_SESSION['_smart_control'])) {
+            if ($_SESSION['_smart_control'] == true) {
+                $_SESSION['_smart_control'] = true;
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * @return array
+     */
+    private function getLoginedUser(){
+        if (!empty($_SESSION['_uid']) && !empty($_SESSION['_umail']) && !empty($_SESSION['_uname'])){
+            return ['id' => $_SESSION['_uid'], 'email' => $_SESSION['_umail'], 'name' => $_SESSION['_uname']];
+        }
+        return [];
+    }
+
+
+    public function logout(){
+        $_SESSION['_smart_control'] = false;
+        header('location: ' . $this->getAppFolder());
+    }
+
 }

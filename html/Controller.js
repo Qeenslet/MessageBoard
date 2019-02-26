@@ -2,6 +2,10 @@ class Controller {
 
     start(){
         this.messages = null;
+        if (THE_USER){
+            $('#navbarDropdown').html(THE_USER.name);
+            $('#loginOptions').html(`<a class="dropdown-item" href="${APP_PATH}/logout">Log out</a>`);
+        }
         this.query();
     }
     query(){
@@ -70,6 +74,42 @@ class Controller {
 
     }
 
+    static postMyMessage(){
+        Controller.removeAlerts();
+        fetch(APP_PATH + '/data', {method: 'post',
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            credentials: 'include',
+            body: $('#new_message').serialize()})
+            .then(response => response.json())
+            .then(data => {
+                if (data.errors){
+                    data.errors.forEach(error => {
+                        $('#new_message').find('input, textarea').each((n, obj) => {
+                            if ($(obj).attr('name') == error.tgt){
+                                $(obj).addClass('is-invalid');
+                                const $parent = $(obj).parent();
+                                $parent.append(`<div class="invalid-feedback">${error.msg}</div>`);
+                            }
+                        })
+                    });
+                }
+                if (data.ok){
+                    Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
+                    document.getElementById('new_message').reset();
+                    if (data.total) TOTAL_ENTRIES = data.total;
+                    else TOTAL_ENTRIES++;
+
+                    Controller.showPagination();
+                } else if (data.fail){
+                    alert(data.fail);
+                }
+
+            })
+            .catch(error => {console.log(error.message); alert('Some error has occured'); });
+    }
+
     static detectMaxPages(){
         let pages = Math.ceil(TOTAL_ENTRIES / 10);
         if (pages < 1) pages = 1;
@@ -119,44 +159,88 @@ class Controller {
         }
     }
 
+    static loginAttempt(){
+        Controller.removeAlerts();
+        fetch(APP_PATH + '/login', {method: 'post',
+            redirect : 'follow',
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            credentials: 'include',
+            body: $('#loginForm').serialize()})
+            .then(response => {
+                if (!response.redirected){
+                    return response.json().then(data => {
+                        if (data.errors){
+                            data.errors.forEach(error => {
+                                $('#loginForm').find('input').each((n, obj) => {
+                                    if ($(obj).attr('name') == error.tgt){
+                                        $(obj).addClass('is-invalid');
+                                        const $parent = $(obj).parent();
+                                        $parent.append(`<div class="invalid-feedback">${error.msg}</div>`);
+                                    }
+                                })
+                            });
+                        }
+                        if (data.user){
+                            $('#loginModal').modal('hide');
+                            Controller.removeAlerts();
+                            Controller.homePage();
+                        }
+                    })
+                } else {
+                    $('#loginModal').modal('hide');
+                    window.location.href = response.url;
+                }
+            })
+            .catch(error => {console.log(error.message); alert('Some error has occured'); });
+    }
+
+
+    static addUser(){
+        Controller.removeAlerts();
+        fetch(APP_PATH + '/auth', {method: 'post',
+            headers: {
+                "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            credentials: 'include',
+            body: $('#newuserForm').serialize()})
+            .then(response => response.json())
+            .then(data => {
+                if (data.errors){
+                    data.errors.forEach(error => {
+                        $('#newuserForm').find('input').each((n, obj) => {
+                            if ($(obj).attr('name') == error.tgt){
+                                $(obj).addClass('is-invalid');
+                                const $parent = $(obj).parent();
+                                $parent.append(`<div class="invalid-feedback">${error.msg}</div>`);
+                            }
+                        })
+                    });
+                }
+                if (data.ok){
+                    $('#newuserModal').modal('hide')
+                    Controller.removeAlerts();
+                    Controller.updateCurrentPage();
+                } else if (data.fail){
+                    alert(data.fail);
+                }
+            })
+            .catch(error => {console.log(error.message); alert('Some error has occured'); });
+    }
+
+    static updateCurrentPage(){
+        let page = Controller.detectCurrentPage();
+        Controller.shiftPage(page);
+    }
+
     static homePage(){
         window.location = APP_PATH;
     }
-}
 
-function postMyMessage (){
-    $('input').removeClass('is-invalid');
-    $('.invalid-feedback').remove();
-    fetch(APP_PATH + '/data', {method: 'post',
-                               headers: {
-                                "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
-                               },
-                               credentials: 'include',
-                               body: $('#new_message').serialize()})
-        .then(response => response.json())
-        .then(data => {
-            if (data.errors){
-                data.errors.forEach(error => {
-                    $('#new_message').find('input, textarea').each((n, obj) => {
-                        if ($(obj).attr('name') == error.tgt){
-                            $(obj).addClass('is-invalid');
-                            const $parent = $(obj).parent();
-                            $parent.append(`<div class="invalid-feedback">${error.msg}</div>`);
-                        }
-                    })
-                });
-            }
-            if (data.ok){
-                Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
-                document.getElementById('new_message').reset();
-                if (data.total) TOTAL_ENTRIES = data.total;
-                else TOTAL_ENTRIES++;
 
-                Controller.showPagination();
-            } else if (data.fail){
-                alert(data.fail);
-            }
-
-        })
-        .catch(error => {console.log(error.message); alert('Some error has occured'); });
+    static removeAlerts(){
+        $('input').removeClass('is-invalid');
+        $('.invalid-feedback').remove();
+    }
 }

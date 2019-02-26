@@ -95,13 +95,26 @@ class DB
             }
             else $st = null;
             $result = $st->fetchAll();
-            /*$st3 = $db->query('SELECT name FROM sqlite_master WHERE type = \'users\'');
-            $result3 = $st3->fetchAll();*/
+            //$st3 = $db->query('SELECT name FROM sqlite_master WHERE name = \'users\'');
+            if ($this->dbType === 'sqlite')
+            {
+                $st3 = $db->prepare('SELECT type FROM sqlite_master WHERE name = :tablename');
+                $st3->execute([':tablename' => 'users']);
+            }
+            else if ($this->dbType === 'mysql'){
+                $st3 = $db->prepare("SELECT table_name FROM information_schema.tables
+                                            WHERE table_schema = :dbname 
+                                             AND table_name = :tablename
+                                            LIMIT 1");
+                $st3->execute([':tablename' => 'users', ':dbname' => $this->dbName]);
+            }
+            else $st3 = null;
 
-            if (sizeof($result) == 0 //||
-                //sizeof($result2) == 0 ||
-                // sizeof($result3) == 0 || sizeof($st4) == 0
-                ) {
+
+            $result3 = $st3->fetchAll();
+
+            if (sizeof($result) == 0 ||
+                sizeof($result3) == 0) {
                 $this->makeTable($db);
                 $this->db = $db;
             } else {
@@ -130,33 +143,15 @@ class DB
                                                              user_id INTEGER NULL,
                                                              html TEXT NOT NULL,
                                                              `date_added` ' . $timestamp . ');');
+            $db->exec('CREATE TABLE IF NOT EXISTS users ( id INTEGER NOT NULL PRIMARY KEY ' . $autoIncr . ',
+                                                             u_name VARCHAR(255) NOT NULL,
+                                                             date_added ' . $timestamp . ',
+                                                             u_mail VARCHAR(255) NOT NULL,
+                                                             u_pass VARCHAR(255) NOT NULL);');
+
         } catch (PDOException $e){
             echo $e->getMessage();
         }
-
-
-        /*$db->exec('CREATE TABLE IF NOT EXISTS news ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                                             mark VARCHAR(255) NOT NULL,
-                                                             header VARCHAR(255) NOT NULL,
-                                                             date_added DATE NOT NULL,
-                                                             image VARCHAR(255) NULL,
-                                                             html TEXT NOT NULL);');
-        $db->exec('CREATE TABLE IF NOT EXISTS users ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                                             u_name VARCHAR(255) NOT NULL,
-                                                             date_added DATE NOT NULL,
-                                                             u_mail VARCHAR(255) NOT NULL,
-                                                             u_pass VARCHAR(255) NOT NULL);');
-        $db->exec('CREATE TABLE IF NOT EXISTS locations ( id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                                                             ip VARCHAR(255) NOT NULL,
-                                                             hostname VARCHAR(255),
-                                                             city VARCHAR(255),
-                                                             region VARCHAR(255),
-                                                             country VARCHAR(5),
-                                                             loc VARCHAR(255),
-                                                             date DATE NOT NULL,
-                                                             org VARCHAR(255),
-                                                             visit INTEGER);');*/
-
 
     }
 
