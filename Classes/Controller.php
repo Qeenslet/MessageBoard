@@ -22,10 +22,9 @@ class Controller
     {
         $path = '';
         if (!empty($this->sets['subfolder']['sitefolder'])) {
-            if ($this->sets['subfolder']['sitefolder'] !== '/') {
-                $path .= $this->sets['subfolder']['sitefolder'];
-            }
+            $path .= $this->sets['subfolder']['sitefolder'];
         }
+        if ($path == '/') $path = '';
         return $path;
     }
 
@@ -178,8 +177,7 @@ class Controller
             $_SESSION['_uname'] = $user['u_name'];
             $_SESSION['_uid'] = $user['id'];
             $_SESSION['_umail'] = $user['u_mail'];
-            $way = $this->getAppFolder();
-            header('location: ' . !empty($way) ? $way : '/');
+            header('location: ' . $this->getAppFolder());
 
         } else {
             $data['errors'][] = ['tgt' => 'u_name', 'msg' => 'Unknown user'];
@@ -237,8 +235,7 @@ class Controller
      */
     public function logout(){
         $_SESSION['_smart_control'] = false;
-        $way = $this->getAppFolder();
-        header('location: ' . !empty($way) ? $way : '/');
+        header('location: ' . $this->getAppFolder());
     }
 
 
