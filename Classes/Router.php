@@ -63,10 +63,11 @@ class Router
     {
         $methodDictionary = $this->{strtolower($this->request->requestMethod)};
         $formatedRoute = $this->formatRoute($this->request->requestUri);
-        $method = $methodDictionary[$formatedRoute];
+        $method = !empty($methodDictionary[$formatedRoute]) ? $methodDictionary[$formatedRoute] : null;
         if(is_null($method))
         {
             $this->defaultRequestHandler();
+            echo '404 Not found!';
             return;
         }
         echo call_user_func_array($method, array($this->request));
