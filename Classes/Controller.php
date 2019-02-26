@@ -20,7 +20,7 @@ class Controller
 
     public function getAppFolder()
     {
-        $path = '/';
+        $path = '';
         if (!empty($this->sets['subfolder']['sitefolder'])){
             $path .= $this->sets['subfolder']['sitefolder'];
         }
@@ -76,10 +76,19 @@ class Controller
     public function posted(Request $request){
         $posted = $request->getBody();
         $data = [];
-
+        $user = [];
+        if ($this->checkSession()){
+            $user = $this->getLoginedUser();
+            if (!empty($user)){
+                $posted['name'] = $user['name'];
+                $posted['email'] = $user['email'];
+                $posted['user_id'] = $user['id'];
+            }
+        }
         foreach ($posted as $k => $value){
             $posted[$k] = trim($value);
         }
+
         if (empty($posted['name'])){
             $data['errors'][] = ['tgt' => 'name',
                                    'msg' => 'Your name is required!'];
@@ -92,7 +101,7 @@ class Controller
             $data['errors'][] = ['tgt' => 'html',
                                    'msg' => 'Your message is empty!'];
         }
-        if (!empty($posted['email']) && !filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL)){
+        if (!empty($posted['email']) && empty($user) && !filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL)){
             $data['errors'][] = ['tgt' => 'email',
                                    'msg' => 'Your email has incorrect format! It should have the pattern name@domain.zone'];
         }
@@ -111,6 +120,7 @@ class Controller
 
 
     /**
+     * Add new user to DB
      * @param Request $param
      * @return string
      */
@@ -135,6 +145,10 @@ class Controller
             $data['errors'][] = ['tgt' => 'u_mail',
                 'msg' => 'Your email has incorrect format! It should have the pattern name@domain.zone'];
         }
+        if ($this->model->getUserByName($userData['u_name'])){
+            $data['errors'][] = ['tgt' => 'u_name',
+                'msg' => 'User with the same name already exists!'];
+        }
         if (empty($data['errors'])){
             try{
                 $userData['u_pass'] = Sypher::encode($userData['u_pass']);
@@ -148,6 +162,7 @@ class Controller
     }
 
     /**
+     * Check user name and password
      * @param Request $param
      * @return string
      */
@@ -188,6 +203,7 @@ class Controller
 
 
     /**
+     * Check if the user is logged in
      * @return bool
      */
     private function checkSession(){
@@ -202,6 +218,7 @@ class Controller
 
 
     /**
+     * Get logined user params
      * @return array
      */
     private function getLoginedUser(){
@@ -212,9 +229,41 @@ class Controller
     }
 
 
+    /**
+     * logout, destroy session
+     */
     public function logout(){
         $_SESSION['_smart_control'] = false;
         header('location: ' . $this->getAppFolder());
+    }
+
+
+    /**
+     * @param Request $request
+     * @return string
+     */
+    public function delete(Request $request){
+        $in = $request->getBody();
+        $data = [];
+        if ($this->checkSession()){
+            $message = $this->model->getMessageById($in['message_id']);
+            if (!empty($message['user_id'])){
+                $user = $this->getLoginedUser();
+                if ($user['id'] == $message['user_id']){
+                    if ($this->model->delete('messages', $in['message_id'])){
+                        $data['ok'] = true;
+                        $data['total'] = $this->model->countMessages();
+                    }
+                } else {
+                    $data['error'] = 'Deletion failed!';
+                }
+            } else {
+                $data['error'] = 'You can delete only your own messages!';
+            }
+        } else {
+            $data['error'] = 'You must be logged in to delete messages!';
+        }
+        return json_encode($data);
     }
 
 }

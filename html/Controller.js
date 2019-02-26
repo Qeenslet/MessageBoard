@@ -3,8 +3,14 @@ class Controller {
     start(){
         this.messages = null;
         if (THE_USER){
-            $('#navbarDropdown').html(THE_USER.name);
+            $('#navbarDropdown').html('Hi, ' + THE_USER.name);
             $('#loginOptions').html(`<a class="dropdown-item" href="${APP_PATH}/logout">Log out</a>`);
+            let $user =  $('.authUname');
+            let $umail = $('.authUmail');
+            $user.val(THE_USER.name);
+            $umail.val(THE_USER.email);
+            $user.attr('disabled', true);
+            $umail.attr('disabled', true);
         }
         this.query();
     }
@@ -54,11 +60,18 @@ class Controller {
 
     static renderMessage (message){
 
+        let deleteCard = '';
+        if (THE_USER){
+            if (THE_USER.id == message.user_id){
+                deleteCard = `<a class="card-link" style="cursor:pointer; color:red" onclick="Controller.deleteEntry('${message.id}')">Delete entry</a>`;
+            }
+        }
         return `<div class="card" style="width: 100%; margin: 10px 0px;">
                       <div class="card-body">
                         <h5 class="card-title">${message.name}</h5>
                         <h6 class="card-subtitle mb2 text-muted">${message.email}</h6>
                         <p class="card-text">${message.html}</p>
+                        ${deleteCard}
                        </div>
                      <div>`;
 
@@ -96,6 +109,7 @@ class Controller {
                     });
                 }
                 if (data.ok){
+                    Controller.shiftPage(1);
                     Controller.appendMessage(Controller.renderMessage(data.ok), $('#message-block'));
                     document.getElementById('new_message').reset();
                     if (data.total) TOTAL_ENTRIES = data.total;
@@ -242,5 +256,29 @@ class Controller {
     static removeAlerts(){
         $('input').removeClass('is-invalid');
         $('.invalid-feedback').remove();
+    }
+
+    static deleteEntry(mId){
+        if (confirm('Delete this entry?')){
+            fetch(APP_PATH + '/delete', {method: 'post',
+                headers: {
+                    "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                credentials: 'include',
+                body: `message_id=${mId}`})
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error){
+                        alert(data.error);
+                    }
+                    if (data.ok && data.total){
+                        TOTAL_ENTRIES = data.total;
+                        Controller.showPagination();
+                        Controller.shiftPage(Controller.detectCurrentPage());
+                    }
+                })
+                .catch(error => {console.log(error.message); alert('Some error has occured'); });
+        }
+
     }
 }

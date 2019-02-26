@@ -30,6 +30,13 @@ class Model
     }
 
 
+    public function getMessageById($id){
+        $params = ['id' => $id];
+        $sql = "SELECT * FROM messages WHERE id = :id";
+        return $this->fetchRow($sql, $params);
+    }
+
+
     protected function fetchAll($sql, $params = []){
 
         if (!empty($params)) {

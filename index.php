@@ -15,3 +15,4 @@ $router->post($baseRoute . '/login', [$controller, 'checkUser']);
 $router->get($baseRoute . '/json', [$controller, 'json']);
 $router->post($baseRoute . '/data', [$controller, 'posted']);
 $router->get($baseRoute . '/logout', [$controller, 'logout']);
+$router->post($baseRoute . '/delete', [$controller, 'delete']);
