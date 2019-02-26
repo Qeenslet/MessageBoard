@@ -21,8 +21,10 @@ class Controller
     public function getAppFolder()
     {
         $path = '';
-        if (!empty($this->sets['subfolder']['sitefolder'])){
-            $path .= $this->sets['subfolder']['sitefolder'];
+        if (!empty($this->sets['subfolder']['sitefolder'])) {
+            if ($this->sets['subfolder']['sitefolder'] !== '/') {
+                $path .= $this->sets['subfolder']['sitefolder'];
+            }
         }
         return $path;
     }
